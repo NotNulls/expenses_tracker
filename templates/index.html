@@ -2,30 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Index Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <form action="{{ url_for('other_page') }}" method="get">
-        <button type="submit">Go to Other Page</button>
-    </form>
-    <hr>
-    <br>
-    <div>
-        <button id="downloadButton">Generate Report</button>
+    <h1>Welcome to the Home Page</h1>
+    <button onclick="location.href='{{ url_for('add_expenses') }}'">Go to Add Expenses Page</button>
+    <div class="sidebar">
+        <a class="active" href="#home">Home</a>
+        <a href = "{{ url_for('select_by_category') }}">Category</a>
+        <a href="#example">Example</a>
+        <a href="#example">Example</a>
     </div>
-<script>
-document.getElementById('downloadButton').addEventListener('click', function() {
-  // Simulacija preuzimanja fajla
-  var fakeFileContent = 'Ovo je sadržaj fajla generisanog u Python-u.';
-  var blob = new Blob([fakeFileContent], { type: 'text/plain' });
-  var a = document.createElement('a');
-  a.href = window.URL.createObjectURL(blob);
-  a.download = 'utilization_report.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-});
-</script>
-
 </body>
 </html>

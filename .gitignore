@@ -1,2 +1,5 @@
 /venv
 /.idea
+/tack_tracker.txt
+.env
+select_by_category.sql
