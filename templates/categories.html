@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>Query by Category</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <div class="sidebar">
+        <a class="active" href="{{ url_for('index') }}">Home</a>
+        <a href = "{{ url_for('select_by_category') }}">Category</a>
+        <a href="{{ url_for('select_by_date') }}">Date</a>
+        <a href="#example">Example</a>
+    </div>
     <h1>Select the entries by category.</h1>
     <form method="POST" action="{{ url_for('select_by_category') }}">
         <select id="category" name="category" required>

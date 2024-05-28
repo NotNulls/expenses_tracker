@@ -10,9 +10,9 @@
     <h1>Welcome to the Home Page</h1>
     <button onclick="location.href='{{ url_for('add_expenses') }}'">Go to Add Expenses Page</button>
     <div class="sidebar">
-        <a class="active" href="#home">Home</a>
+        <a class="active" href="{{ url_for('index') }}">Home</a>
         <a href = "{{ url_for('select_by_category') }}">Category</a>
-        <a href="#example">Example</a>
+        <a href="{{ url_for('select_by_date') }}">Date</a>
         <a href="#example">Example</a>
     </div>
 </body>
