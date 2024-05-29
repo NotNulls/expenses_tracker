@@ -9,7 +9,7 @@
         <a class="active" href="{{ url_for('index') }}">Home</a>
         <a href = "{{ url_for('select_by_category') }}">Category</a>
         <a href="{{ url_for('select_by_date') }}">Date</a>
-        <a href="#example">Example</a>
+        <a href="{{ url_for('expense_json_loader') }}">JSON loader</a>
 </div>
 <h1>Select the entries by date.</h1>
     <form method="POST" action="{{ url_for('select_by_date') }}">
