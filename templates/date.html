@@ -11,17 +11,24 @@
         <a href="{{ url_for('select_by_date') }}">Date</a>
         <a href="#example">Example</a>
 </div>
-<h1>Select the entries by category.</h1>
-    <form method="POST" action="{{ url_for('select_by_category') }}">
-        <select id="category" name="category" required>
-            {% for category in categories %}
-                <option value="{{ category[0] }}">{{ category[1] }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <br>
-        <button type="submit">Submit</button>
-    </form>
+<h1>Select the entries by date.</h1>
+    <form method="POST" action="{{ url_for('select_by_date') }}">
+    <label for="start-date">Start Date :</label>
+    <input type="text" id="start-date" name="start_date"  placeholder="dd.mm.yyyy" >
+    <br><br>
+
+    <label for="end-date">End Date :</label>
+    <input type="text" id="end-date" name="end_date" placeholder="dd.mm.yyyy" >
+    <br><br>
+
+    <label for="exact-date">Exact Date :</label>
+    <input type="text" id="exact-date" name="exact_date" placeholder="dd.mm.yyyy">
+    <br><br>
+
+    <button type="submit">Search</button>
+</form>
+
+
     <table>
         <thead>
             <tr>
@@ -29,15 +36,13 @@
                 <th>Transaction Date</th>
                 <th>Description</th>
                 <th>Price</th>
-                <th>Category ID</th>
             </tr>
-            {% for item in results %}
+            {% for item in date_range_query %}
             <tr>
                 <td>{{ item[0] }}</td>
                 <td>{{ item[1] }}</td>
                 <td>{{ item[2] }}</td>
                 <td>{{ item[3] }}</td>
-                <td>{{ item[4] }}</td>
             </tr>
             {% endfor %}
         </thead>

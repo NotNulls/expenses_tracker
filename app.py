@@ -88,6 +88,32 @@ def select_by_category():
         return render_template('categories.html', categories=categories)
 
 
+@app.route('/select_by_date', methods=['GET', 'POST'])
+def select_by_date():
+    if request.method == 'GET':
+        return render_template('date.html')
+    elif request.method == 'POST':
+        date_starts = request.form['start_date']
+        date_ends = request.form['end_date']
+        exact_date = request.form['exact_date']
+        print(date_starts, ':', date_ends, ':', exact_date)
+        try:
+            if date_starts and date_ends:
+                cur.execute(
+                    f"SELECT * FROM expenses WHERE transaction_date BETWEEN '{date_starts}' and '{date_ends}';"
+                )
+                date_range_query = cur.fetchall()
+                return render_template('date.html', date_range_query=date_range_query)
+            else:
+                cur.execute(
+                    f"SELECT * FROM expenses WHERE transaction_date = '{exact_date}';"
+                )
+                date_range_query = cur.fetchall()
+                return render_template('date.html', date_range_query=date_range_query)
+        except Exception as error:
+            print(error)
+    return render_template('date.html')
+
 
 if __name__ == "__main__":
     app.run()
