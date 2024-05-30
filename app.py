@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 from flask import Flask, render_template, redirect, flash, request
 import psycopg2
@@ -113,6 +114,25 @@ def select_by_date():
         except Exception as error:
             print(error)
     return render_template('date.html')
+
+
+@app.route('/insert_json', methods=['GET', 'POST'])
+def expense_json_loader():
+    if request.method == 'GET':
+        return render_template('json_loader.html')
+    elif request.method == 'POST':
+        posted_data = json.load(request.files['jsonFile'])
+        for i in posted_data:
+            print(json.dumps(i))
+        return render_template('added_json_or_tag.html', posted_data=posted_data)
+    else:
+        return render_template('json_loader.html')
+
+
+@app.route('/present_or_add_tag')
+def update_after_json_load():
+    return render_template('added_json_or_tag.html')
+
 
 
 if __name__ == "__main__":
