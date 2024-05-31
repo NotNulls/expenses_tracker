@@ -11,5 +11,32 @@
         <a href="{{ url_for('select_by_date') }}">Date</a>
         <a href="{{ url_for('expense_json_loader') }}">JSON loader</a>
     </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class=flashes>
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+    {% endwith %}
+<table>
+        <thead>
+            <tr>
+                <th>Expenses ID</th>
+                <th>Transaction Date</th>
+                <th>Description</th>
+                <th>Price</th>
+            </tr>
+            {% for item in data %}
+            <tr>
+                <td>{{ item['expense_id'] }}</td>
+                <td>{{ item['transaction_date'] }}</td>
+                <td>{{ item['description'] }}</td>
+                <td>{{ item['price'] }}</td>
+            </tr>
+            {% endfor %}
+        </thead>
+    </table>
 </body>
 </html>

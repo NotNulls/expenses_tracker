@@ -3,4 +3,5 @@
 /tack_tracker.txt
 .env
 select_by_category.sql
-/.json
+*.json
+/enties.json

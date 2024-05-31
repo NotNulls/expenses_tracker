@@ -1,7 +1,7 @@
 import datetime
 import json
-import os
-from flask import Flask, render_template, redirect, flash, request
+import urllib.parse
+from flask import Flask, render_template, redirect, flash, request, url_for, jsonify
 import psycopg2
 from config import Configure
 
@@ -97,7 +97,6 @@ def select_by_date():
         date_starts = request.form['start_date']
         date_ends = request.form['end_date']
         exact_date = request.form['exact_date']
-        print(date_starts, ':', date_ends, ':', exact_date)
         try:
             if date_starts and date_ends:
                 cur.execute(
@@ -118,21 +117,52 @@ def select_by_date():
 
 @app.route('/insert_json', methods=['GET', 'POST'])
 def expense_json_loader():
+
     if request.method == 'GET':
         return render_template('json_loader.html')
     elif request.method == 'POST':
         posted_data = json.load(request.files['jsonFile'])
+        data = []
         for i in posted_data:
-            print(json.dumps(i))
-        return render_template('added_json_or_tag.html', posted_data=posted_data)
+            expense_id = int(i['expense_id'])
+            transaction_date = i['transaction_date']
+            description = i['description']
+            price = float(i['price'])
+
+            d = {'expense_id': expense_id, 'price': price, 'description': description,
+                 'transaction_date': transaction_date}
+
+            data.append(d)
+
+            try:
+                cur.execute(f"SELECT EXISTS(SELECT 1 FROM expenses WHERE expenses_id={expense_id});")
+                cond = cur.fetchone()[0]
+                if not cond:
+                    cur.execute(
+                        "INSERT INTO expenses (transaction_date, description, price) VALUES (%s, %s, %s)",
+                        (transaction_date, description, price))
+                    db_conn.commit()
+                    flash('Records added successfully.','success')
+                else:
+                    flash('Record already exists', 'info')
+            except Exception as error:
+                flash(f"Database error: {error}")
+        encoded_data = urllib.parse.quote(json.dumps(data))
+        return redirect(url_for('update_after_json_load', data=encoded_data, flash=flash))
     else:
         return render_template('json_loader.html')
 
 
-@app.route('/present_or_add_tag')
+@app.route('/present_or_add_tag', methods=['GET', 'POST'])
 def update_after_json_load():
-    return render_template('added_json_or_tag.html')
-
+    encoded_data = request.args.get('data')
+    if request.method == 'GET':
+        if encoded_data:
+            data = json.loads(urllib.parse.unquote(encoded_data))
+            return render_template('added_json_or_tag.html', data=data)
+        else:
+            flash('No data has been passed.',category='danger')
+            return redirect('expense_json_loader')
 
 
 if __name__ == "__main__":
