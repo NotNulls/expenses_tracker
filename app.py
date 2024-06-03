@@ -1,7 +1,6 @@
 import datetime
 import json
-import urllib.parse
-from flask import Flask, render_template, redirect, flash, request, url_for, jsonify
+from flask import Flask, render_template, redirect, flash, request, url_for, session, jsonify
 import psycopg2
 from config import Configure
 
@@ -117,52 +116,85 @@ def select_by_date():
 
 @app.route('/insert_json', methods=['GET', 'POST'])
 def expense_json_loader():
-
     if request.method == 'GET':
         return render_template('json_loader.html')
     elif request.method == 'POST':
-        posted_data = json.load(request.files['jsonFile'])
+        if 'jsonFile' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+
+        file = request.files['jsonFile']
+
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+
+        try:
+            posted_data = json.load(file)
+        except Exception as e:
+            flash(f'Error reading file: {e}', 'danger')
+            return redirect(request.url)
+
         data = []
-        for i in posted_data:
-            expense_id = int(i['expense_id'])
-            transaction_date = i['transaction_date']
-            description = i['description']
-            price = float(i['price'])
+        try:
+            for i in posted_data:
+                expense_id = int(i['expense_id'])
+                transaction_date = i['transaction_date']
+                description = i['description']
+                price = float(i['price'])
+                category_id = int(i['category_id'])
 
-            d = {'expense_id': expense_id, 'price': price, 'description': description,
-                 'transaction_date': transaction_date}
+                d = {
+                    'expense_id': expense_id,
+                    'price': price,
+                    'description': description,
+                    'transaction_date': transaction_date,
+                    'category_id': category_id
+                }
+                data.append(d)
 
-            data.append(d)
+                try:
+                    cur.execute("SELECT EXISTS(SELECT 1 FROM expenses WHERE expenses_id=%s);", (expense_id,))
+                    cond = cur.fetchone()[0]
+                    if cond:
+                        cur.execute(
+                            "INSERT INTO expenses (transaction_date, description, price, category_id) VALUES (%s, %s, %s, %s);",
+                            (transaction_date, description, price, category_id)
+                        )
+                    else:
+                        flash(f'Record with expense_id {expense_id} already exists', 'info')
+                except Exception as error:
+                    flash(f"Database error: {error}", 'danger')
+                    return redirect(url_for('expense_json_loader'))
 
-            try:
-                cur.execute(f"SELECT EXISTS(SELECT 1 FROM expenses WHERE expenses_id={expense_id});")
-                cond = cur.fetchone()[0]
-                if not cond:
-                    cur.execute(
-                        "INSERT INTO expenses (transaction_date, description, price) VALUES (%s, %s, %s)",
-                        (transaction_date, description, price))
-                    db_conn.commit()
-                    flash('Records added successfully.','success')
-                else:
-                    flash('Record already exists', 'info')
-            except Exception as error:
-                flash(f"Database error: {error}")
-        encoded_data = urllib.parse.quote(json.dumps(data))
-        return redirect(url_for('update_after_json_load', data=encoded_data, flash=flash))
-    else:
-        return render_template('json_loader.html')
+            db_conn.commit()
+            flash('Records added successfully.', 'success')
+
+            # Store the processed data in the session
+            session['passed_data'] = json.dumps(data)
+            return redirect(url_for('update_after_json_load'))
+
+        except Exception as e:
+            flash(f'Error processing data: {e}', 'danger')
+            return redirect(url_for('expense_json_loader'))
+
+    return render_template('json_loader.html')
 
 
 @app.route('/present_or_add_tag', methods=['GET', 'POST'])
 def update_after_json_load():
-    encoded_data = request.args.get('data')
+    if 'passed_data' not in session:
+        flash('No data passed.', 'danger')
+        return redirect(url_for('expense_json_loader'))
+
     if request.method == 'GET':
-        if encoded_data:
-            data = json.loads(urllib.parse.unquote(encoded_data))
-            return render_template('added_json_or_tag.html', data=data)
-        else:
-            flash('No data has been passed.',category='danger')
-            return redirect('expense_json_loader')
+        data = json.loads(session['passed_data'])
+        return render_template('added_json_or_tag.html', data=data)
+
+    elif request.method == 'POST':
+        posted_data = json.loads(session['passed_data'])
+        flash('Tags added successfully.', 'success')
+        return render_template('added_json_or_tag.html', data=posted_data)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@
         <a href="{{ url_for('select_by_date') }}">Date</a>
         <a href="{{ url_for('expense_json_loader') }}">JSON loader</a>
     </div>
+    <div class="add_json_tag">
     {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class=flashes>
@@ -20,6 +21,7 @@
                 </ul>
             {% endif %}
     {% endwith %}
+    </div>
 <table>
         <thead>
             <tr>
@@ -27,6 +29,7 @@
                 <th>Transaction Date</th>
                 <th>Description</th>
                 <th>Price</th>
+                <th>Add Tag</th>
             </tr>
             {% for item in data %}
             <tr>
@@ -34,9 +37,39 @@
                 <td>{{ item['transaction_date'] }}</td>
                 <td>{{ item['description'] }}</td>
                 <td>{{ item['price'] }}</td>
+                <td>
+                <div class="checkbox-wrapper-1">
+
+                      <input id="example-1" class="substituted" type="checkbox" aria-hidden="true">
+                      <label for="example-1"></label>
+
+                </div>
+                </td>
             </tr>
             {% endfor %}
         </thead>
     </table>
+<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reload = urlParams.get('reload');
+            if (reload) {
+                // Remove the reload flag and reload the page
+                urlParams.delete('reload');
+                window.history.replaceState({}, document.title, window.location.pathname + '?' + urlParams.toString());
+                location.reload();
+            }
+        });
+        function toggleTick() {
+            const button = document.getElementById('tickButton');
+            if (button.innerHTML === '&#9744;') { // If the box is empty
+                button.innerHTML = '&#10004;'; // Change to checkmark
+            } else {
+                button.innerHTML = '&#9744;'; // Change back to empty box
+            }
+        }
+</script>
+
+    </script>
 </body>
 </html>
