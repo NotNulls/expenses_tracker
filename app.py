@@ -136,6 +136,7 @@ def expense_json_loader():
             return redirect(request.url)
 
         data = []
+        n = len(data)
         try:
             for i in posted_data:
                 expense_id = int(i['expense_id'])
@@ -161,18 +162,19 @@ def expense_json_loader():
                             "INSERT INTO expenses (transaction_date, description, price, category_id) VALUES (%s, %s, %s, %s);",
                             (transaction_date, description, price, category_id)
                         )
-                    else:
-                        flash(f'Record with expense_id {expense_id} already exists', 'info')
+                        cur.execute("SELECT * FROM expenses ORDER BY expenses_id DESC LIMIT 1")
+                        print(cur.fetchone()[0])
+
                 except Exception as error:
                     flash(f"Database error: {error}", 'danger')
                     return redirect(url_for('expense_json_loader'))
 
             db_conn.commit()
+
             flash('Records added successfully.', 'success')
 
-            # Store the processed data in the session
             session['passed_data'] = json.dumps(data)
-            return redirect(url_for('update_after_json_load'))
+            return redirect(url_for('update_after_json_load',n=n))
 
         except Exception as e:
             flash(f'Error processing data: {e}', 'danger')
@@ -189,10 +191,16 @@ def update_after_json_load():
 
     if request.method == 'GET':
         data = json.loads(session['passed_data'])
+
         return render_template('added_json_or_tag.html', data=data)
 
     elif request.method == 'POST':
         posted_data = json.loads(session['passed_data'])
+        tags = request.form.getlist('tag')
+        if tags:
+            for i in tags:
+                if i != '':
+                    print(i)
         flash('Tags added successfully.', 'success')
         return render_template('added_json_or_tag.html', data=posted_data)
 

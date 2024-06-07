@@ -11,6 +11,10 @@
         <a href="{{ url_for('select_by_date') }}">Date</a>
         <a href="{{ url_for('expense_json_loader') }}">JSON loader</a>
     </div>
+
+<div class="content">
+    <h1>Last set of entries added from the JSON file.</h1>
+    <button  id="submitButton" type="button" >Add Tag(s)</button>
     <div class="add_json_tag">
     {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -22,14 +26,15 @@
             {% endif %}
     {% endwith %}
     </div>
-<table>
+
+    <table>
         <thead>
             <tr>
                 <th>Expenses ID</th>
                 <th>Transaction Date</th>
                 <th>Description</th>
                 <th>Price</th>
-                <th>Add Tag</th>
+                <th>Tag</th>
             </tr>
             {% for item in data %}
             <tr>
@@ -38,38 +43,37 @@
                 <td>{{ item['description'] }}</td>
                 <td>{{ item['price'] }}</td>
                 <td>
-                <div class="checkbox-wrapper-1">
-
-                      <input id="example-1" class="substituted" type="checkbox" aria-hidden="true">
-                      <label for="example-1"></label>
-
-                </div>
+                <form class="tagForm" id="myForm" action="/present_or_add_tag" method="POST">
+                    <input  type="text" name="tag" aria-hidden="true" maxlength="25">
+                </form>
                 </td>
             </tr>
             {% endfor %}
         </thead>
     </table>
+</div>
 <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const reload = urlParams.get('reload');
-            if (reload) {
-                // Remove the reload flag and reload the page
-                urlParams.delete('reload');
-                window.history.replaceState({}, document.title, window.location.pathname + '?' + urlParams.toString());
-                location.reload();
-            }
-        });
-        function toggleTick() {
-            const button = document.getElementById('tickButton');
-            if (button.innerHTML === '&#9744;') { // If the box is empty
-                button.innerHTML = '&#10004;'; // Change to checkmark
-            } else {
-                button.innerHTML = '&#9744;'; // Change back to empty box
-            }
-        }
-</script>
 
-    </script>
+document.getElementById('submitButton').addEventListener('click', function() {
+            // Create a new form
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/present_or_add_tag';
+
+            // Get all inputs with the name 'tag'
+            var inputs = document.querySelectorAll('input[name="tag"]');
+            inputs.forEach(function(input) {
+                // Clone the input and add it to the form
+                var clonedInput = input.cloneNode();
+                form.appendChild(clonedInput);
+            });
+
+            // Append the form to the body and submit it
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+
+</script>
 </body>
 </html>
