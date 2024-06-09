@@ -136,7 +136,6 @@ def expense_json_loader():
             return redirect(request.url)
 
         data = []
-        n = len(data)
         try:
             for i in posted_data:
                 expense_id = int(i['expense_id'])
@@ -144,15 +143,6 @@ def expense_json_loader():
                 description = i['description']
                 price = float(i['price'])
                 category_id = int(i['category_id'])
-
-                d = {
-                    'expense_id': expense_id,
-                    'price': price,
-                    'description': description,
-                    'transaction_date': transaction_date,
-                    'category_id': category_id
-                }
-                data.append(d)
 
                 try:
                     cur.execute("SELECT EXISTS(SELECT 1 FROM expenses WHERE expenses_id=%s);", (expense_id,))
@@ -163,7 +153,8 @@ def expense_json_loader():
                             (transaction_date, description, price, category_id)
                         )
                         cur.execute("SELECT * FROM expenses ORDER BY expenses_id DESC LIMIT 1")
-                        print(cur.fetchone()[0])
+                        result = cur.fetchone()
+                        data.append(result)
 
                 except Exception as error:
                     flash(f"Database error: {error}", 'danger')
@@ -171,10 +162,11 @@ def expense_json_loader():
 
             db_conn.commit()
 
+            n = len(data)
+            redirect_url = url_for('update_after_json_load', n=n)
             flash('Records added successfully.', 'success')
 
-            session['passed_data'] = json.dumps(data)
-            return redirect(url_for('update_after_json_load',n=n))
+            return redirect(url_for('update_after_json_load', n=n))
 
         except Exception as e:
             flash(f'Error processing data: {e}', 'danger')
@@ -185,24 +177,18 @@ def expense_json_loader():
 
 @app.route('/present_or_add_tag', methods=['GET', 'POST'])
 def update_after_json_load():
-    if 'passed_data' not in session:
-        flash('No data passed.', 'danger')
-        return redirect(url_for('expense_json_loader'))
+    response = request.args.get('n', type=int)
 
     if request.method == 'GET':
-        data = json.loads(session['passed_data'])
-
-        return render_template('added_json_or_tag.html', data=data)
+        cur.execute(f"select * from expenses order by expenses_id desc limit {response};")
+        rows = cur.fetchall()
+        columns = ['expense_id', 'transaction_date', 'description', 'price', 'category_id']
+        result = [dict(zip(columns, row)) for row in rows]
+        return render_template('added_json_or_tag.html', result=result)
 
     elif request.method == 'POST':
-        posted_data = json.loads(session['passed_data'])
-        tags = request.form.getlist('tag')
-        if tags:
-            for i in tags:
-                if i != '':
-                    print(i)
-        flash('Tags added successfully.', 'success')
-        return render_template('added_json_or_tag.html', data=posted_data)
+
+        return render_template('added_json_or_tag.html')
 
 
 if __name__ == "__main__":
