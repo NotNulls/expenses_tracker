@@ -163,7 +163,7 @@ def expense_json_loader():
             db_conn.commit()
 
             n = len(data)
-            redirect_url = url_for('update_after_json_load', n=n)
+
             flash('Records added successfully.', 'success')
 
             return redirect(url_for('update_after_json_load', n=n))
@@ -180,7 +180,7 @@ def update_after_json_load():
 
     if request.method == 'GET':
         response = request.args.get('n', type=int)
-        print(response)
+
 
         cur.execute(f"SELECT * FROM expenses ORDER BY expenses_id DESC LIMIT {response};")
         rows = cur.fetchall()
@@ -190,10 +190,8 @@ def update_after_json_load():
 
     elif request.method == 'POST':
 
-        print('request form:    ', request.form)
         expense_ids = request.form.getlist('expense_id')
         tags = request.form.getlist('tag')
-        print(expense_ids, tags)
 
         if not expense_ids or not tags:
             flash('No tag added.', 'danger')
