@@ -14,7 +14,7 @@
 
 <div class="content">
     <h1>Last set of entries added from the JSON file.</h1>
-    <button  id="submitButton" type="button" >Add Tag(s)</button>
+    <button  id="submitButton" form="tagForm" type="submit" >Add Tag(s)</button>
     <div class="add_json_tag">
     {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -38,13 +38,14 @@
             </tr>
             {% for item in result %}
             <tr>
-                <td>{{ item['expense_id'] }}</td>
-                <td>{{ item['transaction_date'] }}</td>
-                <td>{{ item['description'] }}</td>
-                <td>{{ item['price'] }}</td>
+                <td>{{ item.expense_id }}</td>
+                <td>{{ item.transaction_date }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.price }}</td>
                 <td>
-                <form class="tagForm" id="myForm" action="/present_or_add_tag" method="POST">
-                    <input  type="text" name="tag" aria-hidden="true" maxlength="25">
+                <form id="tagForm" class="tagForm" action="{{ url_for('update_after_json_load') }}" method="POST">
+                    <input type="hidden" name="expense_id" value="{{ item.expense_id }}">
+                    <input type="text" name="tag" aria-hidden="true" maxlength="25">
                 </form>
                 </td>
             </tr>
@@ -53,26 +54,40 @@
     </table>
 </div>
 <script>
-
 document.getElementById('submitButton').addEventListener('click', function() {
-            // Create a new form
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/present_or_add_tag';
+            // Get the main form
+            var mainForm = document.getElementById('mainForm');
 
-            // Get all inputs with the name 'tag'
-            var inputs = document.querySelectorAll('input[name="tag"]');
-            inputs.forEach(function(input) {
-                // Clone the input and add it to the form
-                var clonedInput = input.cloneNode();
-                form.appendChild(clonedInput);
+            // Clear the main form to avoid duplications
+            mainForm.innerHTML = '';
+
+            // Get all rows of the table
+            var rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(function(row) {
+                var expenseId = row.querySelector('input[name="expense_id"]').value;
+                var tag = row.querySelector('input[name="tag"]').value;
+
+                if (tag) { // Only add inputs if a tag is present
+                    // Create and append hidden expense ID input
+                    var expenseIdInput = document.createElement('input');
+                    expenseIdInput.type = 'hidden';
+                    expenseIdInput.name = 'expense_id';
+                    expenseIdInput.value = expenseId;
+                    mainForm.appendChild(expenseIdInput);
+
+                    // Create and append hidden tag input
+                    var tagInput = document.createElement('input');
+                    tagInput.type = 'hidden';
+                    tagInput.name = 'tag';
+                    tagInput.value = tag;
+                    mainForm.appendChild(tagInput);
+                }
             });
 
-            // Append the form to the body and submit it
-            document.body.appendChild(form);
-            form.submit();
+            // Submit the form
+            mainForm.submit();
         });
-
 
 </script>
 </body>

@@ -177,10 +177,12 @@ def expense_json_loader():
 
 @app.route('/present_or_add_tag', methods=['GET', 'POST'])
 def update_after_json_load():
-    response = request.args.get('n', type=int)
 
     if request.method == 'GET':
-        cur.execute(f"select * from expenses order by expenses_id desc limit {response};")
+        response = request.args.get('n', type=int)
+        print(response)
+
+        cur.execute(f"SELECT * FROM expenses ORDER BY expenses_id DESC LIMIT {response};")
         rows = cur.fetchall()
         columns = ['expense_id', 'transaction_date', 'description', 'price', 'category_id']
         result = [dict(zip(columns, row)) for row in rows]
@@ -188,7 +190,20 @@ def update_after_json_load():
 
     elif request.method == 'POST':
 
-        return render_template('added_json_or_tag.html')
+        print('request form:    ', request.form)
+        expense_ids = request.form.getlist('expense_id')
+        tags = request.form.getlist('tag')
+        print(expense_ids, tags)
+
+        if not expense_ids or not tags:
+            flash('No tag added.', 'danger')
+            return render_template('added_json_or_tag.html')
+
+        for expense_id, tag in zip(expense_ids, tags):
+            if tag:
+                print(f"Expense ID: {expense_id}, Tag: {tag}")
+
+    return render_template('added_json_or_tag.html')
 
 
 if __name__ == "__main__":
